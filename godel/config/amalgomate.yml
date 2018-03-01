@@ -1,0 +1,5 @@
+amalgomators:
+  gofmt-1.10.0:
+    config: gofmt.yml
+    output-dir: gofmt-1.10.0/generated_src
+    pkg: amalgomated

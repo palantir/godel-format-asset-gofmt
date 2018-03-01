@@ -1,0 +1,3 @@
+packages:
+  gofmt:
+    main: github.com/golang/go/src/cmd/gofmt
