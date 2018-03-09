@@ -1,7 +1,7 @@
 products:
-  gofmt-1.10.0-asset:
+  gofmt-asset:
     build:
-      main-pkg: ./gofmt-1.10.0
+      main-pkg: .
       environment:
         CGO_ENABLED: "0"
       os-archs:

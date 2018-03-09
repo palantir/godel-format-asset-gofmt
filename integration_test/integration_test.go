@@ -49,7 +49,7 @@ func Foo() {}
 	files, err := gofiles.Write(tmpDir, specs)
 	require.NoError(t, err)
 
-	cli, err := products.Bin("gofmt-1.10.0-asset")
+	cli, err := products.Bin("gofmt-asset")
 	require.NoError(t, err)
 
 	srcFilePath := files["foo.go"].Path
@@ -93,7 +93,7 @@ func Foo() {
 	files, err := gofiles.Write(tmpDir, specs)
 	require.NoError(t, err)
 
-	cli, err := products.Bin("gofmt-1.10.0-asset")
+	cli, err := products.Bin("gofmt-asset")
 	require.NoError(t, err)
 
 	srcFilePath := files["foo.go"].Path
