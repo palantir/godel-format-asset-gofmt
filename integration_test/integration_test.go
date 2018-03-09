@@ -15,52 +15,59 @@
 package integration_test
 
 import (
-	"io/ioutil"
-	"os/exec"
+	"fmt"
 	"testing"
 
-	"github.com/nmiyake/pkg/dirs"
 	"github.com/nmiyake/pkg/gofiles"
+	"github.com/palantir/godel-format-plugin/formattester"
 	"github.com/palantir/godel/pkg/products"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGoFmtAsset(t *testing.T) {
-	tmpDir, cleanup, err := dirs.TempDir(".", "")
-	require.NoError(t, err)
-	defer cleanup()
+const (
+	formatPluginLocator  = "com.palantir.godel-format-plugin:format-plugin:1.0.0-rc1"
+	formatPluginResolver = "https://palantir.bintray.com/releases/{{GroupPath}}/{{Product}}/{{Version}}/{{Product}}-{{Version}}-{{OS}}-{{Arch}}.tgz"
 
-	origSrcContent := `package foo
-
-import (
-	_ "os"
-	_ "fmt"
-)
-
-func Foo() {}
+	godelYML = `exclude:
+  names:
+    - "\\..+"
+    - "vendor"
+  paths:
+    - "godel"
 `
-	specs := []gofiles.GoFileSpec{
-		{
-			RelPath: "foo.go",
-			Src:     origSrcContent,
-		},
+)
+
+func TestGofmt(t *testing.T) {
+	assetPath, err := products.Bin("gofmt-asset")
+	require.NoError(t, err)
+
+	configFiles := map[string]string{
+		"godel/config/godel.yml":  godelYML,
+		"godel/config/format.yml": "",
 	}
-	files, err := gofiles.Write(tmpDir, specs)
-	require.NoError(t, err)
+	formattester.RunAssetFormatTest(t,
+		formatPluginLocator, formatPluginResolver,
+		assetPath,
+		[]formattester.AssetTestCase{
+			{
+				Name: "formats file",
+				Specs: []gofiles.GoFileSpec{
+					{
+						RelPath: "foo.go",
+						Src: `package foo
 
-	cli, err := products.Bin("gofmt-asset")
-	require.NoError(t, err)
+import (
+	_ "os"
+	_ "fmt"
+)
 
-	srcFilePath := files["foo.go"].Path
-	cmd := exec.Command(cli, srcFilePath)
-	err = cmd.Run()
-	require.NoError(t, err)
-
-	content, err := ioutil.ReadFile(srcFilePath)
-	require.NoError(t, err)
-
-	assert.Equal(t, `package foo
+func Foo() {}
+`,
+					},
+				},
+				ConfigFiles: configFiles,
+				WantFiles: map[string]string{
+					"foo.go": `package foo
 
 import (
 	_ "fmt"
@@ -68,48 +75,79 @@ import (
 )
 
 func Foo() {}
-`, string(content))
-}
-
-func TestSimplify(t *testing.T) {
-	tmpDir, cleanup, err := dirs.TempDir(".", "")
-	require.NoError(t, err)
-	defer cleanup()
-
-	origSrcContent := `package foo
+`,
+				},
+			},
+			{
+				Name: "simplifies files",
+				Specs: []gofiles.GoFileSpec{
+					{
+						RelPath: "foo.go",
+						Src: `package foo
 
 func Foo() {
 	for _ := range []string{} {
 		_ = "foo"
 	}
 }
-`
-	specs := []gofiles.GoFileSpec{
-		{
-			RelPath: "foo.go",
-			Src:     origSrcContent,
-		},
-	}
-	files, err := gofiles.Write(tmpDir, specs)
-	require.NoError(t, err)
-
-	cli, err := products.Bin("gofmt-asset")
-	require.NoError(t, err)
-
-	srcFilePath := files["foo.go"].Path
-	cmd := exec.Command(cli, "-s", srcFilePath)
-	output, err := cmd.CombinedOutput()
-	require.NoError(t, err, string(output))
-
-	content, err := ioutil.ReadFile(srcFilePath)
-	require.NoError(t, err)
-
-	assert.Equal(t, `package foo
+`,
+					},
+				},
+				ConfigFiles: map[string]string{
+					"godel/config/godel.yml": godelYML,
+					"godel/config/format.yml": `
+formatters:
+  gofmt:
+    args:
+      - "-s"
+`,
+				},
+				WantFiles: map[string]string{
+					"foo.go": `package foo
 
 func Foo() {
 	for range []string{} {
 		_ = "foo"
 	}
 }
-`, string(content))
+`,
+				},
+			},
+			{
+				Name: "verify does not modify files and prints unformatted files",
+				Specs: []gofiles.GoFileSpec{
+					{
+						RelPath: "foo.go",
+						Src: `package foo
+
+import (
+	_ "os"
+	_ "fmt"
+)
+
+func Foo() {}
+`,
+					},
+				},
+				ConfigFiles: configFiles,
+				Verify:      true,
+				WantError:   true,
+				WantOutput: func(projectDir string) string {
+					return fmt.Sprintf(`%s/foo.go
+`, projectDir)
+				},
+				WantFiles: map[string]string{
+					"foo.go": `package foo
+
+import (
+	_ "os"
+	_ "fmt"
+)
+
+func Foo() {}
+`,
+				},
+			},
+		},
+	)
 }
