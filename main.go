@@ -15,33 +15,27 @@
 package main
 
 import (
-	"github.com/palantir/godel-format-plugin/assetapi"
-	"github.com/spf13/cobra"
+	"os"
+
+	"github.com/palantir/amalgomate/amalgomated"
+	"github.com/palantir/godel-format-plugin/formatter"
+	"github.com/palantir/pkg/cobracli"
 
 	"github.com/palantir/godel-format-asset-gofmt/generated_src"
+	"github.com/palantir/godel-format-asset-gofmt/gofmt"
 )
 
 const assetName = "gofmt"
 
+var debugFlagVal bool
+
 func main() {
-	assetapi.AmalgomatedMain(assetName, rootCmd, amalgomatedformatter.Instance())
-}
+	if len(os.Args) >= 2 && os.Args[1] == amalgomated.ProxyCmdPrefix+assetName {
+		os.Args = append(os.Args[:1], os.Args[2:]...)
+		amalgomatedformatter.Instance().Run(assetName)
+		os.Exit(0)
+	}
 
-var (
-	rootCmd         *cobra.Command
-	simplifyFlagVal bool
-)
-
-func init() {
-	rootCmd = assetapi.RootCommand(
-		assetName,
-		func(cmd *cobra.Command, args []string) error {
-			var extraArgs []string
-			if simplifyFlagVal {
-				extraArgs = append(extraArgs, "-s")
-			}
-			return assetapi.RunAmalgomatedFormatCommand(assetName, args, assetapi.ListFlagVal, extraArgs, cmd.OutOrStdout(), cmd.OutOrStderr())
-		},
-	)
-	rootCmd.Flags().BoolVarP(&simplifyFlagVal, "simplify", "s", false, "simplify code")
+	rootCmd := formatter.AssetRootCmd(gofmt.Creator(), "")
+	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(rootCmd, &debugFlagVal, ""))
 }
