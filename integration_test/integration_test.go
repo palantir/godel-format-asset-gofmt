@@ -20,12 +20,13 @@ import (
 
 	"github.com/nmiyake/pkg/gofiles"
 	"github.com/palantir/godel-format-plugin/formattester"
+	"github.com/palantir/godel/framework/pluginapitester"
 	"github.com/palantir/godel/pkg/products"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	formatPluginLocator  = "com.palantir.godel-format-plugin:format-plugin:1.0.0-rc2"
+	formatPluginLocator  = "com.palantir.godel-format-plugin:format-plugin:1.0.0-rc3"
 	formatPluginResolver = "https://palantir.bintray.com/releases/{{GroupPath}}/{{Product}}/{{Version}}/{{Product}}-{{Version}}-{{OS}}-{{Arch}}.tgz"
 
 	godelYML = `exclude:
@@ -38,16 +39,19 @@ const (
 )
 
 func TestGofmt(t *testing.T) {
+	pluginProvider, err := pluginapitester.NewPluginProviderFromLocator(formatPluginLocator, formatPluginResolver)
+	require.NoError(t, err)
+
 	assetPath, err := products.Bin("gofmt-asset")
 	require.NoError(t, err)
 
 	configFiles := map[string]string{
-		"godel/config/godel.yml":  godelYML,
-		"godel/config/format.yml": "",
+		"godel/config/godel.yml":         godelYML,
+		"godel/config/format-plugin.yml": "",
 	}
 	formattester.RunAssetFormatTest(t,
-		formatPluginLocator, formatPluginResolver,
-		assetPath,
+		pluginProvider,
+		pluginapitester.NewAssetProvider(assetPath),
 		[]formattester.AssetTestCase{
 			{
 				Name: "formats file",
@@ -93,20 +97,47 @@ func Foo() {
 `,
 					},
 				},
+				ConfigFiles: configFiles,
+				WantFiles: map[string]string{
+					"foo.go": `package foo
+
+func Foo() {
+	for range []string{} {
+		_ = "foo"
+	}
+}
+`,
+				},
+			},
+			{
+				Name: "does not simplify files if skip-simplify is true",
+				Specs: []gofiles.GoFileSpec{
+					{
+						RelPath: "foo.go",
+						Src: `package foo
+
+func Foo() {
+	for _ := range []string{} {
+		_ = "foo"
+	}
+}
+`,
+					},
+				},
 				ConfigFiles: map[string]string{
 					"godel/config/godel.yml": godelYML,
-					"godel/config/format.yml": `
+					"godel/config/format-plugin.yml": `
 formatters:
   gofmt:
-    args:
-      - "-s"
+    config:
+      skip-simplify: true
 `,
 				},
 				WantFiles: map[string]string{
 					"foo.go": `package foo
 
 func Foo() {
-	for range []string{} {
+	for _ := range []string{} {
 		_ = "foo"
 	}
 }
@@ -145,6 +176,47 @@ import (
 )
 
 func Foo() {}
+`,
+				},
+			},
+		},
+	)
+}
+
+func TestUpgradeConfig(t *testing.T) {
+	pluginProvider, err := pluginapitester.NewPluginProviderFromLocator(formatPluginLocator, formatPluginResolver)
+	require.NoError(t, err)
+
+	assetPath, err := products.Bin("gofmt-asset")
+	require.NoError(t, err)
+	assetProvider := pluginapitester.NewAssetProvider(assetPath)
+
+	pluginapitester.RunUpgradeConfigTest(t,
+		pluginProvider,
+		[]pluginapitester.AssetProvider{assetProvider},
+		[]pluginapitester.UpgradeConfigTestCase{
+			{
+				Name: "current configuration is not upgraded",
+				ConfigFiles: map[string]string{
+					"godel/config/godel.yml": godelYML,
+					"godel/config/format-plugin.yml": `
+# comment
+formatters:
+  gofmt:
+    config:
+      # inner comment
+      skip-simplify: true
+`,
+				},
+				WantOutput: "",
+				WantFiles: map[string]string{
+					"godel/config/format-plugin.yml": `
+# comment
+formatters:
+  gofmt:
+    config:
+      # inner comment
+      skip-simplify: true
 `,
 				},
 			},

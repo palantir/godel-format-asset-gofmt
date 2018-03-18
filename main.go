@@ -36,6 +36,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	rootCmd := formatter.AssetRootCmd(gofmt.Creator(), "")
+	rootCmd := formatter.AssetRootCmd(gofmt.Creator(), gofmt.UpgradeConfig, "")
 	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(rootCmd, &debugFlagVal, ""))
 }
