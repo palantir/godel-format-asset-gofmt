@@ -22,7 +22,8 @@ import (
 	"github.com/palantir/pkg/cobracli"
 
 	"github.com/palantir/godel-format-asset-gofmt/generated_src"
-	"github.com/palantir/godel-format-asset-gofmt/gofmt"
+	"github.com/palantir/godel-format-asset-gofmt/gofmt/config"
+	"github.com/palantir/godel-format-asset-gofmt/gofmt/creator"
 )
 
 const assetName = "gofmt"
@@ -36,6 +37,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	rootCmd := formatter.AssetRootCmd(gofmt.Creator(), gofmt.UpgradeConfig, "")
+	rootCmd := formatter.AssetRootCmd(creator.Gofmt(), config.UpgradeConfig, "")
 	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(rootCmd, &debugFlagVal, ""))
 }
