@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	formatPluginLocator  = "com.palantir.godel-format-plugin:format-plugin:1.0.0-rc5"
+	formatPluginLocator  = "com.palantir.godel-format-plugin:format-plugin:1.0.0-rc6"
 	formatPluginResolver = "https://palantir.bintray.com/releases/{{GroupPath}}/{{Product}}/{{Version}}/{{Product}}-{{Version}}-{{OS}}-{{Arch}}.tgz"
 
 	godelYML = `exclude:
@@ -52,6 +52,7 @@ func TestFormat(t *testing.T) {
 	formattester.RunAssetFormatTest(t,
 		pluginProvider,
 		pluginapitester.NewAssetProvider(assetPath),
+		"",
 		[]formattester.AssetTestCase{
 			{
 				Name: "formats file",
@@ -70,8 +71,9 @@ func Foo() {}
 					},
 				},
 				ConfigFiles: configFiles,
-				WantFiles: map[string]string{
-					"foo.go": `package foo
+				WantFiles: func(specFiles map[string]gofiles.GoFile) map[string]string {
+					return map[string]string{
+						"foo.go": `package foo
 
 import (
 	_ "fmt"
@@ -80,6 +82,7 @@ import (
 
 func Foo() {}
 `,
+					}
 				},
 			},
 			{
@@ -98,8 +101,9 @@ func Foo() {
 					},
 				},
 				ConfigFiles: configFiles,
-				WantFiles: map[string]string{
-					"foo.go": `package foo
+				WantFiles: func(specFiles map[string]gofiles.GoFile) map[string]string {
+					return map[string]string{
+						"foo.go": `package foo
 
 func Foo() {
 	for range []string{} {
@@ -107,6 +111,7 @@ func Foo() {
 	}
 }
 `,
+					}
 				},
 			},
 			{
@@ -133,8 +138,9 @@ formatters:
       skip-simplify: true
 `,
 				},
-				WantFiles: map[string]string{
-					"foo.go": `package foo
+				WantFiles: func(specFiles map[string]gofiles.GoFile) map[string]string {
+					return map[string]string{
+						"foo.go": `package foo
 
 func Foo() {
 	for _ := range []string{} {
@@ -142,6 +148,7 @@ func Foo() {
 	}
 }
 `,
+					}
 				},
 			},
 			{
@@ -167,8 +174,9 @@ func Foo() {}
 					return fmt.Sprintf(`%s/foo.go
 `, projectDir)
 				},
-				WantFiles: map[string]string{
-					"foo.go": `package foo
+				WantFiles: func(specFiles map[string]gofiles.GoFile) map[string]string {
+					return map[string]string{
+						"foo.go": `package foo
 
 import (
 	_ "os"
@@ -177,6 +185,7 @@ import (
 
 func Foo() {}
 `,
+					}
 				},
 			},
 		},
