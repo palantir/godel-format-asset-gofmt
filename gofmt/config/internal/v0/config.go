@@ -20,7 +20,7 @@ import (
 )
 
 type Config struct {
-	SkipSimplify bool `yaml:"skip-simplify"`
+	SkipSimplify bool `yaml:"skip-simplify,omitempty"`
 }
 
 func UpgradeConfig(cfgBytes []byte) ([]byte, error) {
