@@ -4,7 +4,3 @@ checks:
     - value: should have comment or be unexported
     - value: or a comment on this block
     - value: vendor/github.com/golang/go/
-  novendor:
-    config:
-      ignore-pkgs:
-      - ./vendor/github.com/golang/go
