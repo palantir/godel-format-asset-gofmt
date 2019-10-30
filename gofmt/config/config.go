@@ -16,7 +16,7 @@ package config
 
 import (
 	"github.com/palantir/godel-format-asset-gofmt/gofmt"
-	"github.com/palantir/godel-format-asset-gofmt/gofmt/config/internal/v0"
+	v0 "github.com/palantir/godel-format-asset-gofmt/gofmt/config/internal/v0"
 )
 
 type Gofmt v0.Config
