@@ -16,9 +16,9 @@ package gofmt
 
 import (
 	"io"
+	"os"
 	"os/exec"
 
-	"github.com/kardianos/osext"
 	"github.com/palantir/amalgomate/amalgomated"
 	"github.com/pkg/errors"
 )
@@ -34,7 +34,7 @@ func (f *Formatter) TypeName() (string, error) {
 }
 
 func (f *Formatter) Format(files []string, list bool, projectDir string, stdout io.Writer) error {
-	self, err := osext.Executable()
+	self, err := os.Executable()
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine executable")
 	}
