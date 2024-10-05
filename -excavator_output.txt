@@ -1,0 +1,21 @@
+go mod operation failed. This may mean that there are legitimate dependency issues with the "go.mod" definition in the repository and the updates performed by the gomod check. This branch can be cloned locally to debug the issue.
+
+Command that caused error:
+./godelw exec -- go get -d github.com/palantir/amalgomate@upgrade github.com/palantir/godel/v2@upgrade github.com/stretchr/testify@upgrade gopkg.in/yaml.v2@upgrade
+
+Output:
+Downloading https://palantir.bintray.com/releases/com/palantir/godel/godel/2.26.0/godel-2.26.0.tgz to /local/.godel/downloads/godel-2.26.0.tgz...
+Download failed using command: wget -O /local/.godel/downloads/godel-2.26.0.tgz -q --show-progress https://palantir.bintray.com/releases/com/palantir/godel/godel/2.26.0/godel-2.26.0.tgz
+Attempting download using curl...
+Downloading https://palantir.bintray.com/releases/com/palantir/godel/godel/2.26.0/godel-2.26.0.tgz to /local/.godel/downloads/godel-2.26.0.tgz...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl: (60) SSL: no alternative certificate subject name matches target host name 'palantir.bintray.com'
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+Download failed using command: curl -f -L -o /local/.godel/downloads/godel-2.26.0.tgz https://palantir.bintray.com/releases/com/palantir/godel/godel/2.26.0/godel-2.26.0.tgz
+Download failed using wget and curl. Verify that the distribution URL is correct and try again or install the distribution manually.
