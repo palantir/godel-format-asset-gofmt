@@ -1,0 +1,13 @@
+./godelw verify failed after replacing Bintray resolvers with GitHub resolvers
+
+Command that caused error:
+./godelw verify --skip-test --skip-check
+
+Output:
+Running format...
+Running mod...
+Running amalgomate...
+Error: amalgomate failed for gofmt: failed to repackage files specified in configuration: failed to determine module for main package: unable to determine module for package cmd/gofmt resolved from directory /repo/generated_src
+Running license...
+Failed tasks:
+	amalgomate
